@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Ponto de entrada simples para exercitar TODO o fluxo do domínio pelo
+ * Ponto de entrada simples para exercitar o fluxo do domínio pelo
  * terminal: conexões entre usuários, cadastro de jogadores, confirmação
  * e remoção de presença, atualização de nível, sorteio de times e o
  * ciclo de vida completo do racha (iniciar, finalizar, cancelar).
