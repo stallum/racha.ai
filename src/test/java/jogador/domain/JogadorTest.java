@@ -1,48 +1,45 @@
 package jogador.domain;
 
+import core.domain.Usuario;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class JogadorTest {
 
     @Test
-    void atualizarNivel() {
+    void deveCriarJogadorComNivelValido() {
+        Jogador jogador = new Jogador(new Usuario(1L, "A", null, null), PosicaoEnum.ATACANTE, 5, true);
+        assertEquals(5, jogador.getNivelHabilidade());
     }
 
     @Test
-    void getDadosUsuario() {
+    void naoDeveAceitarNivelAbaixoDoMinimo() {
+        Usuario usuario = new Usuario(1L, "A", null, null);
+        assertThrows(IllegalArgumentException.class,
+                () -> new Jogador(usuario, PosicaoEnum.ATACANTE, 0, true));
     }
 
     @Test
-    void setUsuario() {
+    void naoDeveAceitarNivelAcimaDoMaximo() {
+        Usuario usuario = new Usuario(1L, "A", null, null);
+        assertThrows(IllegalArgumentException.class,
+                () -> new Jogador(usuario, PosicaoEnum.ATACANTE, 6, true));
     }
 
     @Test
-    void getPosicao() {
+    void atualizarNivelDeveRefletirNoGetter() {
+        Jogador jogador = new Jogador(new Usuario(1L, "A", null, null), PosicaoEnum.MEIO_CAMPO, 2, false);
+        jogador.atualizarNivel(4);
+        assertEquals(4, jogador.getNivelHabilidade());
     }
 
     @Test
-    void setPosicao() {
-    }
-
-    @Test
-    void getNivelHabilidade() {
-    }
-
-    @Test
-    void isMensalista() {
-    }
-
-    @Test
-    void setMensalista() {
-    }
-
-    @Test
-    void testEquals() {
-    }
-
-    @Test
-    void testHashCode() {
+    void doisJogadoresComMesmoUsuarioDevemSerIguais() {
+        Usuario usuario = new Usuario(1L, "A", null, null);
+        Jogador j1 = new Jogador(usuario, PosicaoEnum.GOLEIRO, 3, true);
+        Jogador j2 = new Jogador(usuario, PosicaoEnum.ATACANTE, 5, false);
+        assertEquals(j1, j2);
     }
 }
