@@ -16,9 +16,6 @@ public class Usuario {
     private String email;
     private List<Conexao> conexoes = new ArrayList<>();
 
-    public Usuario() {
-    }
-
     public Usuario(Long id, String nome, String telefone, String email) {
         this.id = id;
         this.nome = nome;
