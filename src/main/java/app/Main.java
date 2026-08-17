@@ -1,5 +1,6 @@
 package app;
 
+import conexao.domain.Database;
 import core.domain.Conexao;
 import core.domain.Usuario;
 import jogador.domain.Jogador;
@@ -17,8 +18,9 @@ import java.util.List;
 /**
  * Ponto de entrada simples para exercitar o fluxo do domínio pelo
  * terminal: conexões entre usuários, cadastro de jogadores, confirmação
- * e remoção de presença, atualização de nível, sorteio de times e o
- * ciclo de vida completo do racha (iniciar, finalizar, cancelar).
+ * e remoção de presença, atualização de nível, sorteio de times, o
+ * ciclo de vida completo do racha (iniciar, finalizar, cancelar) e o
+ * registro da partida em CSV.
  *
  * Não é um teste automatizado (isso já está em src/test/java) — é só
  * um "passeio guiado" pelo código, com prints em cada etapa.
@@ -74,16 +76,29 @@ public class Main {
 
         secao("7. Ciclo de vida do racha (iniciar / finalizar)");
         racha.iniciarRacha();
+        LocalDateTime horarioInicio = LocalDateTime.now();
+        Database.definirComeco(horarioInicio);
         System.out.println("Status após iniciar: " + racha.getStatus());
-        racha.finalizarRacha();
-        System.out.println("Status após finalizar: " + racha.getStatus());
+        System.out.println("Horário de início: " + horarioInicio);
 
-        secao("8. Validações de negócio (erros esperados)");
+        racha.finalizarRacha();
+        LocalDateTime horarioFim = LocalDateTime.now();
+        Database.definirFim(horarioFim);
+        System.out.println("Status após finalizar: " + racha.getStatus());
+        System.out.println("Horário de fim: " + horarioFim);
+
+        secao("8. Registro da partida em CSV");
+        Database.registrarPartida(racha);
+        System.out.println("Partida gravada em relatorio_rachas.csv");
+        System.out.println("Linha registrada: " + Database.escreveRelatorio(racha));
+        System.out.println("Jogadores confirmados: " + racha.getJogadoresConfirmados().size());
+
+        secao("9. Validações de negócio (erros esperados)");
         tentarErro("Cancelar um racha já finalizado", racha::cancelarRacha);
         tentarErro("Confirmar presença após o racha ter sido sorteado/finalizado",
                 () -> racha.confirmarPresenca(jogadorDesistente));
 
-        secao("9. Um segundo racha, cancelado ainda AGENDADO");
+        secao("10. Um segundo racha, cancelado ainda AGENDADO");
         Racha rachaCancelavel = new Racha(2L, LocalDateTime.now().plusDays(5), "Campo do Zé",
                 organizador, RegraSorteio.porQuantidadeTimes(2));
         rachaCancelavel.cancelarRacha();
