@@ -1,0 +1,260 @@
+@startuml racha_ai
+
+skinparam classAttributeIconSize 0
+
+title Diagrama de Classes - racha.ai (src/main/java)
+
+' ============================================================
+'  core.domain
+' ============================================================
+
+enum StatusConexaoEnum {
+    PENDENTE
+    ACEITA
+    RECUSADA
+}
+
+class Usuario {
+    - id : Long
+    - nome : String
+    - telefone : String
+    - email : String
+    - conexoes : List<Conexao>
+    + Usuario(id, nome, telefone, email)
+    + estaConectadoCom(outro : Usuario) : boolean
+    + adicionarConexao(conexao : Conexao) : void
+    + getId() : Long
+    + setId(id : Long) : void
+    + getNome() : String
+    + setNome(nome : String) : void
+    + getTelefone() : String
+    + setTelefone(telefone : String) : void
+    + getEmail() : String
+    + setEmail(email : String) : void
+    + getConexoes() : List<Conexao>
+}
+
+class Conexao {
+    - id : Long
+    - solicitante : Usuario
+    - solicitado : Usuario
+    - status : StatusConexaoEnum
+    + Conexao()
+    + Conexao(id, solicitante, solicitado)
+    + aceitar() : void
+    + recusar() : void
+    + estaAceita() : boolean
+    + getSolicitante() : Usuario
+    + setSolicitante(solicitante : Usuario) : void
+    + getSolicitado() : Usuario
+    + setSolicitado(solicitado : Usuario) : void
+    + getStatus() : StatusConexaoEnum
+    + setStatus(status : StatusConexaoEnum) : void
+}
+
+' ============================================================
+'  jogador.domain
+' ============================================================
+
+enum PosicaoEnum {
+    GOLEIRO
+    DEFENSOR
+    MEIO_CAMPO
+    ATACANTE
+}
+
+class Jogador {
+    - {static} NIVEL_MINIMO : int = 1
+    - {static} NIVEL_MAXIMO : int = 5
+    - usuario : Usuario
+    - posicao : PosicaoEnum
+    - nivelHabilidade : int
+    - mensalista : boolean
+    + Jogador()
+    + Jogador(usuario, posicao, nivelHabilidade, mensalista)
+    + atualizarNivel(novoNivel : int) : void
+    + getDadosUsuario() : Usuario
+    + setUsuario(usuario : Usuario) : void
+    + getPosicao() : PosicaoEnum
+    + setPosicao(posicao : PosicaoEnum) : void
+    + getNivelHabilidade() : int
+    + isMensalista() : boolean
+    + setMensalista(mensalista : boolean) : void
+}
+
+' ============================================================
+'  time.domain
+' ============================================================
+
+class RegraSorteio {
+    - quantidadeTimes : int
+    - tamanhoTime : int
+    - RegraSorteio(quantidadeTimes, tamanhoTime)
+    + {static} porTamanhoTime(tamanhoTime : int) : RegraSorteio
+    + {static} porQuantidadeTimes(quantidadeTimes : int) : RegraSorteio
+    + calcularQuantidadeTimes(totalJogadores : int) : int
+    + calcularTamanhoTime(totalJogadores : int) : int
+}
+
+interface EstrategiaSorteio <<Strategy>> {
+    + distribuirJogadores(jogadores : List<Jogador>, regra : RegraSorteio) : List<Time>
+}
+
+class SorteioEquilibradoStrategy {
+    + distribuirJogadores(jogadores : List<Jogador>, regra : RegraSorteio) : List<Time>
+    - criarTimes(quantidadeTimes : int) : List<Time>
+}
+
+class Time {
+    - id : Long
+    - nome : String
+    - corCamisa : String
+    - jogadores : Set<Jogador>
+    + Time()
+    + Time(id, nome, corCamisa)
+    + adicionarJogador(jogador : Jogador) : void
+    + removerJogador(jogador : Jogador) : void
+    + getNivelMedio() : double
+    + getTotalEstrelas() : int
+    + getId() : Long
+    + setId(id : Long) : void
+    + getNome() : String
+    + setNome(nome : String) : void
+    + getCorCamisa() : String
+    + setCorCamisa(corCamisa : String) : void
+    + getJogadores() : Set<Jogador>
+}
+
+' ============================================================
+'  racha.domain
+' ============================================================
+
+enum StatusRachaEnum {
+    AGENDADO
+    SORTEADO
+    EM_ANDAMENTO
+    FINALIZADO
+    CANCELADO
+}
+
+class Racha {
+    - id : Long
+    - dataHora : LocalDateTime
+    - local : String
+    - status : StatusRachaEnum
+    - organizador : Usuario
+    - jogadoresConfirmados : List<Jogador>
+    - timesFormados : Set<Time>
+    - regraSorteio : RegraSorteio
+    + Racha()
+    + Racha(id, dataHora, local, organizador, regraSorteio)
+    + confirmarPresenca(jogador : Jogador) : void
+    + removerPresenca(jogador : Jogador) : void
+    + realizarSorteio(estrategia : EstrategiaSorteio) : void
+    + iniciarRacha() : void
+    + finalizarRacha() : void
+    + cancelarRacha() : void
+    - exigirStatus(esperado : StatusRachaEnum, acao : String) : void
+    + getId() : Long
+    + setId(id : Long) : void
+    + getDataHora() : LocalDateTime
+    + setDataHora(dataHora : LocalDateTime) : void
+    + getLocal() : String
+    + setLocal(local : String) : void
+    + getStatus() : StatusRachaEnum
+    + getOrganizador() : Usuario
+    + setOrganizador(organizador : Usuario) : void
+    + getJogadoresConfirmados() : List<Jogador>
+    + getTimesFormados() : Set<Time>
+    + getRegraSorteio() : RegraSorteio
+    + setRegraSorteio(regraSorteio : RegraSorteio) : void
+}
+
+' ============================================================
+'  conexao.domain
+' ============================================================
+
+class Database <<utility>> {
+    - {static} ARQUIVO_CSV : String
+    - {static} CABECALHO : String
+    - {static} FORMATADOR_DATA_HORA : DateTimeFormatter
+    - {static} comeco : LocalDateTime
+    - {static} fim : LocalDateTime
+    + {static} definirComeco(horarioComeco : LocalDateTime) : void
+    + {static} definirFim(horarioFim : LocalDateTime) : void
+    + {static} getComeco() : LocalDateTime
+    + {static} getFim() : LocalDateTime
+    + {static} escreveRelatorio(racha : Racha) : String
+    + {static} escreveRelatorio(racha, horarioInicio, horarioFim) : String
+    + {static} registrarPartida(racha : Racha) : void
+    + {static} registrarPartida(racha, horarioInicio, horarioFim) : void
+    - {static} escreverCabecalhoSeNecessario(arquivo : Path) : void
+    - {static} montarListaDeJogadores(jogadores : List<Jogador>) : String
+    - {static} obterNomeDoJogador(jogador : Jogador) : String
+    - {static} formatarHorario(horario : LocalDateTime) : String
+    - {static} escaparCampoCsv(valor : String) : String
+    - {static} validarRacha(racha : Racha) : void
+    - {static} validarHorarios(horarioInicio, horarioFim) : void
+}
+
+' ============================================================
+'  app
+' ============================================================
+
+class Main {
+    + {static} main(args : String[]) : void
+    - {static} conectarComOrganizador(organizador : Usuario, usuarios : List<Usuario>) : void
+    - {static} tentarErro(descricao : String, acao : Runnable) : void
+    - {static} secao(titulo : String) : void
+    - {static} criarUsuariosDeTeste() : List<Usuario>
+    - {static} criarJogadoresAPartirDosUsuarios(usuarios : List<Usuario>) : List<Jogador>
+}
+
+' ============================================================
+'  Relacionamentos
+' ============================================================
+
+Usuario "1" *-- "0..*" Conexao : conexoes
+Conexao --> "1" Usuario : solicitante
+Conexao --> "1" Usuario : solicitado
+Conexao --> StatusConexaoEnum : status
+
+Jogador --> "1" PosicaoEnum : posicao
+Jogador *-- "1" Usuario : usuario
+
+SorteioEquilibradoStrategy ..|> EstrategiaSorteio
+EstrategiaSorteio ..> RegraSorteio : usa
+EstrategiaSorteio ..> Time : cria
+
+Time "1" o-- "0..*" Jogador : jogadores
+
+Racha --> StatusRachaEnum : status
+Racha --> "1" Usuario : organizador
+Racha "1" o-- "0..*" Jogador : jogadoresConfirmados
+Racha "1" o-- "0..*" Time : timesFormados
+Racha --> "1" RegraSorteio : regraSorteio
+Racha ..> EstrategiaSorteio : usa no sorteio
+
+Database ..> Racha : le dados
+Database ..> Jogador : le nomes
+
+Main ..> Racha
+Main ..> Usuario
+Main ..> Conexao
+Main ..> Jogador
+Main ..> SorteioEquilibradoStrategy
+Main ..> RegraSorteio
+Main ..> Database
+
+' ============================================================
+'  Nota sobre ciclo de vida
+' ============================================================
+
+note bottom of StatusRachaEnum
+  Ciclo de vida:
+  AGENDADO -> SORTEADO -> EM_ANDAMENTO -> FINALIZADO
+  CANCELADO possivel a partir de qualquer estado,
+  exceto FINALIZADO.
+end note
+
+@enduml
